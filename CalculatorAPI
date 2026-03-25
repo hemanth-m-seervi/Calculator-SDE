@@ -1,0 +1,52 @@
+import java.io.*;
+import java.net.*;
+import com.sun.net.httpserver.*;
+
+public class CalculatorAPI {
+
+    public static void main(String[] args) throws Exception {
+
+        HttpServer server = HttpServer.create(new InetSocketAddress(8000),0);
+
+        server.createContext("/calculate",(exchange)->{
+
+            String query = exchange.getRequestURI().getQuery();
+
+            String[] data = query.split("&");
+
+            double a = Double.parseDouble(data[0].split("=")[1]);
+            double b = Double.parseDouble(data[1].split("=")[1]);
+            String op = data[2].split("=")[1];
+
+            double result = 0;
+
+            if(op.equals("add"))
+                result = a+b;
+
+            else if(op.equals("sub"))
+                result = a-b;
+
+            else if(op.equals("mul"))
+                result = a*b;
+
+            else if(op.equals("div"))
+                result = a/b;
+
+            String response = String.valueOf(result);
+
+            exchange.sendResponseHeaders(200,response.length());
+
+            OutputStream os = exchange.getResponseBody();
+
+            os.write(response.getBytes());
+
+            os.close();
+
+        });
+
+        server.start();
+
+        System.out.println("Server started at port 8000");
+
+    }
+}
