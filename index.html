@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Web Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f2f2f2;
+        }
+        .calculator {
+            background-color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+        }
+        #display {
+            width: 240px;
+            height: 50px;
+            margin-bottom: 10px;
+            text-align: right;
+            font-size: 24px;
+            padding: 5px;
+            border-radius: 5px;
+            border: none;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 60px);
+            grid-gap: 10px;
+        }
+        .buttons button {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            background-color: #555;
+            color: white;
+            transition: background-color 0.2s;
+        }
+        .buttons button:hover {
+            background-color: #777;
+        }
+        .buttons .operator {
+            background-color: #ff9500;
+        }
+        .buttons .operator:hover {
+            background-color: #ffa733;
+        }
+        .buttons .equals {
+            background-color: #1e90ff;
+            grid-column: span 2;
+        }
+        .buttons .equals:hover {
+            background-color: #3ea0ff;
+        }
+        .buttons .clear {
+            grid-column: span 4;
+            background-color: #d9534f;
+        }
+        .buttons .clear:hover {
+            background-color: #e96b6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <input type="text" id="display" disabled placeholder="0">
+        <div class="buttons">
+            <button onclick="press('7')">7</button>
+            <button onclick="press('8')">8</button>
+            <button onclick="press('9')">9</button>
+            <button class="operator" onclick="press('/')">/</button>
+
+            <button onclick="press('4')">4</button>
+            <button onclick="press('5')">5</button>
+            <button onclick="press('6')">6</button>
+            <button class="operator" onclick="press('*')">*</button>
+
+            <button onclick="press('1')">1</button>
+            <button onclick="press('2')">2</button>
+            <button onclick="press('3')">3</button>
+            <button class="operator" onclick="press('-')">-</button>
+
+            <button onclick="press('0')">0</button>
+            <button onclick="press('.')">.</button>
+            <button class="equals" onclick="calculate()">=</button>
+            <button class="operator" onclick="press('+')">+</button>
+
+            <button class="clear" onclick="clearDisplay()">C</button>
+        </div>
+    </div>
+
+    <script>
+        let expression = "";
+
+        function press(value) {
+            expression += value;
+            document.getElementById('display').value = expression;
+        }
+
+        function clearDisplay() {
+            expression = "";
+            document.getElementById('display').value = "";
+        }
+
+        function calculate() {
+            if (expression === "") return;
+
+            // Match operator and operands
+            const match = expression.match(/([\d.]+)([\+\-\*\/])([\d.]+)/);
+            if (!match) {
+                document.getElementById('display').value = "Error";
+                expression = "";
+                return;
+            }
+
+            const a = match[1];
+            const opChar = match[2];
+            const b = match[3];
+
+            let op;
+            switch(opChar) {
+                case '+': op = 'add'; break;
+                case '-': op = 'sub'; break;
+                case '*': op = 'mul'; break;
+                case '/': op = 'div'; break;
+                default: op = null;
+            }
+
+            if (!op) return;
+
+            fetch(`http://127.0.0.1:5000/calc?a=${a}&b=${b}&op=${op}`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.result !== undefined) {
+                        document.getElementById('display').value = data.result;
+                        expression = data.result.toString();
+                    } else {
+                        document.getElementById('display').value = data.error;
+                        expression = "";
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('display').value = "Error";
+                    expression = "";
+                });
+        }
+    </script>
+</body>
+</html>
